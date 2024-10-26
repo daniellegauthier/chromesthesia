@@ -26,9 +26,9 @@ The visualizer uses a CSV file to map frequencies to colors and digits. You can 
 https://hebbkx1anhila5yf.public.blob.vercel-storage.com/la%20matrice%20plus-kIWdKtxESmRNHxPTFbvx6NsPzpBa5O.csv
 
 # Dependencies
-p5.js
-p5.sound.js
-Tailwind CSS
+p5.js<br>
+p5.sound.jss<br>
+Tailwind CSSs<br>
 
 # Browser Compatibility
 This application has been tested on modern versions of Chrome, Firefox, and Safari. It requires a browser that supports the Web Audio API.
