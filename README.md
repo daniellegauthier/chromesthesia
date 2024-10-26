@@ -27,8 +27,8 @@ https://hebbkx1anhila5yf.public.blob.vercel-storage.com/la%20matrice%20plus-kIWd
 
 # Dependencies
 p5.js<br>
-p5.sound.jss<br>
-Tailwind CSSs<br>
+p5.sound.js<br>
+Tailwind CSS<br>
 
 # Browser Compatibility
 This application has been tested on modern versions of Chrome, Firefox, and Safari. It requires a browser that supports the Web Audio API.
