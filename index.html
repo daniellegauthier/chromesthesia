@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="sketch.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold mb-4">Sound Visualizer</h1>
+        <div id="canvas-container" class="mb-4"></div>
+        <div class="flex space-x-4 mb-4">
+            <button id="startButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                Start
+            </button>
+            <button id="stopButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                Stop
+            </button>
+        </div>
+        <div class="mb-4">
+            <label for="frequencyRange" class="block text-sm font-medium text-gray-700">Frequency Range</label>
+            <input type="range" id="frequencyRange" name="frequencyRange" min="0" max="1" step="0.1" value="0.5" class="mt-1 block w-full">
+        </div>
+        <div id="output" class="bg-white p-4 rounded shadow"></div>
+    </div>
+</body>
+</html>
