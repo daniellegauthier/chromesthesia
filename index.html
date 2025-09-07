@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Visualizer</title>
+    <title>Sound to Color Visualizer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,16 +13,9 @@
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-4xl font-bold mb-4">Sound Visualizer</h1>
         <p class="text-sm mb-4">by Danielle Gauthier</p>
-   <p>This program is inspired by the ecofeminist pluriverse and feminist perspectives on family-making and crafting. It is a synesthesia used for telepathic communication and other forms of poetic linguistic navigation programming. The colors have been analyzed according to their navigational properties in RGB computation using Python. To use this deterministic model for sequence optimization: <a href=https://daniellegauthier.github.io/RGB-Root-Matriz-Color-Plotter/> Color Plotter<a></p>
+   <p>This program is inspired by a chromesthesia that enables liberation access for a psychologically controlled female adult. The access is to the ecofeminist pluriverse and feminist perspectives on family-making and crafting. It is a synesthesia used for telepathic communication and other forms of poetic linguistic navigation programming. The colors have been analyzed according to their navigational properties in RGB computation using Python and derived from their mappings to sound. <br><br>To use this chromesthesia as a deterministic model for sequence optimization, go to: https://huggingface.co/spaces/daniellegauthier/RGB-Root-Matriz-Color-Plotter</p>
         <div id="canvas-container" class="mb-4"></div>
-        <div class="flex space-x-4 mb-4">
-            <button id="startButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
-                Start
-            </button>
-            <button id="stopButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
-                Stop
-            </button>
-        </div>
+       
         <div class="mb-4">
             <label for="frequencyRange" class="block text-sm font-medium text-gray-700">Frequency Range</label>
             <input type="range" id="frequencyRange" name="frequencyRange" min="0" max="1" step="0.1" value="0.5" class="mt-1 block w-full">
