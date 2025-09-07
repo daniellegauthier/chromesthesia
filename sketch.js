@@ -542,10 +542,10 @@ function createUI() {
   ambLabel = createSpan("🌈 Ambient → Dataset Words ").parent(c).style("font-weight","600");
   ambStartBtn = btn("Start Ambient", startAmbient, c);
   ambStopBtn  = btn("Stop Ambient", stopAmbient, c);
-btn("Start Emotions (Lab)", startEmotionsVAD, c);
-btn("Stop Emotions",       stopEmotionsVAD,  c);
+  btn("Start Emotions (Lab)", startEmotionsVAD, c);
+  btn("Stop Emotions", stopEmotionsVAD, c);
   btn("Start Story", startStory, c);
-btn("Stop Story",  stopStory,  c);
+  btn("Stop Story", stopStory, c);
 
 
   createSpan("&nbsp; Sensitivity ").parent(c);
