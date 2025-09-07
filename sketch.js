@@ -179,15 +179,26 @@ function preload() {
   datasetTable = loadTable(DATASET_FILE, "csv", "header");
 }
 
-function setup() {
-  createCanvas(matrixWidth * cellSize, matrixHeight * cellSize);
+function setup(){
+  createCanvas(matrixWidth*cellSize, matrixHeight*cellSize);
   mic = new p5.AudioIn();
   fft = new p5.FFT(0.8, 1024);
+  fft.setInput(mic);
   buildDatasetFromTable(datasetTable);   // <<< make data usable everywhere
   createUI();
   textFont("system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial");
   textSize(12);
+
+  // Resume audio on first interaction (works on GitHub Pages, iOS, etc.)
+  const boot = () => {
+    userStartAudio().then(() => {
+      console.log('🔊 audio context resumed');
+    }).catch(e => console.warn('audio resume failed', e));
+    window.removeEventListener('pointerdown', boot, {passive:true});
+  };
+  window.addEventListener('pointerdown', boot, {passive:true});
 }
+
 
 // Map discrete emotion -> sentiment scores (valence [-1..1], arousal [0..1], dominance [0..1])
 const EMO_PROFILE = {
