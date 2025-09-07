@@ -180,7 +180,8 @@ function preload() {
 }
 
 function setup(){
-  createCanvas(matrixWidth*cellSize, matrixHeight*cellSize);
+  let cnv = createCanvas(matrixWidth * cellSize, matrixHeight * cellSize);
+  cnv.parent("canvas-container"); 
   mic = new p5.AudioIn();
   fft = new p5.FFT(0.8, 1024);
   fft.setInput(mic);
