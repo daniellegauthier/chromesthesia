@@ -9,7 +9,13 @@ const matrixWidth = 40, matrixHeight = 40, cellSize = 10;
 let isMicActive = false;
 
 // ---------- UI ----------
-let statusDiv, liveDiv, finalDiv;
+// unified transcript UI ids
+const TRANSCRIPT_BOX_ID = "transcript-box";
+const TRANSCRIPT_ID     = "transcript";
+const LIVE_ID           = "live-line";
+
+let statusDiv; // keep status bar
+
 let startAudioBtn, stopAudioBtn;
 let connectBtn, pttBtn, stopSttBtn, clearBtn, contBtn;
 let ledSpan, txStats;
@@ -36,6 +42,7 @@ const AMBIENT_FORCE_EVERY = 10;   // append same phrase every N ticks (N * rate 
 let PHRASE_TO_COLORS = new Map();
 let COLOR_KEY_TO_RGB = new Map();
 let COLOR_TO_WORDS = new Map(); 
+
 
 // ===== Ambient Story/NLG =====
 let storyTimer = null;
@@ -525,10 +532,13 @@ function draw() {
 }
 
 // ------------------------- UI -------------------------
-function createUI() {
-  const c = createDiv().style("width", (matrixWidth*cellSize + 320) + "px").style("margin","10px 0");
+function createUI(){
+  const c = createDiv().style("margin","10px 0"); // or your existing container
 
-  ledSpan = createSpan("🔴").parent(c).style("margin-right","6px");
+  statusDiv = createDiv("Ready. • For STT: 🎧 Start Audio → 🔌 Connect STT → talk. • For Ambient/Story: 🎧 Start Audio → Start …")
+    .parent(c).addClass("status").style("margin","6px 0");
+
+ledSpan = createSpan("🔴").parent(c).style("margin-right","6px");
   txStats = createSpan(" packets: 0 • bytes: 0 ").parent(c);
   createElement("br").parent(c);
 
@@ -568,8 +578,23 @@ function createUI() {
 
   createElement("br").parent(c);
 
-  statusDiv = createDiv("Ready. • For STT: 🎧 Start Audio → 🔌 Connect STT → talk. • For Ambient: 🎧 Start Audio → Start Ambient.")
-                .parent(c).style("margin","6px 0");
+  // 👇 make/attach the unified transcript panel
+  ensureTranscriptUI(c);
+}
+
+// make transcript panel if missing (works on p5 editor + GitHub Pages)
+function ensureTranscriptUI(parentEl){
+  if (!select("#"+TRANSCRIPT_BOX_ID)) {
+    const box = createDiv().id(TRANSCRIPT_BOX_ID).addClass("panel").parent(parentEl)
+      .style("margin","12px 0").style("max-width","var(--maxw)").style("max-height","320px")
+      .style("overflow-y","auto");
+    createElement("div").id(LIVE_ID).addClass("listening").parent(box)
+      .html("<b>Listening:</b> (…)")
+      .style("margin","0 0 8px 0");
+    createElement("div").id(TRANSCRIPT_ID).addClass("transcript").parent(box)
+      .html("<b>Transcript:</b> ");
+  }
+}
 
   // WRAPPED transcript box
 function appendFinal(text) {
@@ -815,23 +840,39 @@ function micErr(e){ console.error(e); msg("❗ Mic permission failed."); }
 function msg(t){ statusDiv.html(t); }
 function led(icon){ ledSpan.html(icon); }
 function showTx(){ txStats.html(` packets: ${packets} • bytes: ${bytesSent}`); }
-function setLive(t){ liveDiv.html("<b>Listening:</b> " + (t || "<i>(…)</i>")); }
-function setFinal(t){
-  finalDiv.html("<b>Transcript:</b> " + (t || "<i>(none yet)</i>"));
+// write a short live line (no scrolling)
+function setLive(html){
+  const el = select("#"+LIVE_ID);
+  if (el) el.html(html);
 }
-function appendFinal(text){
-  const current = getFinal();
-  tokenCount++;
-  // Insert a soft newline every N tokens to avoid long single lines
-  const spacer = (tokenCount % TOKENS_PER_LINE === 0) ? "\n" : "";
-  const next = current ? (current + text + spacer) : (text + spacer);
-  setFinal(next);
+
+// append to transcript (with optional paragraph break)
+function appendFinal(text, opts = { paragraph:false }){
+  const el = select("#"+TRANSCRIPT_ID);
+  if (!el) return;
+  let html = el.html();
+  // remove initial "<b>Transcript:</b> " once we start
+  if (html.trim().endsWith("</b>")) html += " ";
+  html += text + (opts.paragraph ? "<br><br>" : " ");
+  el.html(html);
+  autoScrollTranscript();
 }
-function getFinal(){
-  const html = finalDiv.elt.innerHTML;
-  const m = html.match(/<\/b>\s*(.*)$/s);
-  return (m && m[1] && !m[1].includes("<i>")) ? m[1] : "";
+
+// clear transcript + live
+function clearTranscript(){
+  const t = select("#"+TRANSCRIPT_ID);
+  if (t) t.html("<b>Transcript:</b> ");
+  setLive("<b>Listening:</b> (…)");
 }
+
+// keep the box pinned to bottom
+function autoScrollTranscript(){
+  const box = select("#"+TRANSCRIPT_BOX_ID);
+  if (box) { const d = box.elt; d.scrollTop = d.scrollHeight; }
+}
+
+// optional: status bar helper
+function msg(s){ if (statusDiv) statusDiv.html(s); }
 
 // Space = PTT
 function keyPressed(){ if (keyCode === 32) startPTT(); }
