@@ -378,36 +378,41 @@ function stopStory(){
   msg("⛔ Story mode stopped.");
 }
 
-function emotionTick(){
-  const n = Math.min(4, matrix.length);
-  if (n===0) return null;
 
-  // --- Lab-based average as before ---
-  let sumV=0,sumA=0,sumD=0, N=0;
-  const freq = new Map();
-  for (let r = matrix.length - n; r < matrix.length; r++){
+function emotionTick() {
+  const n = Math.min(4, matrix.length);
+  if (n === 0) return null;
+
+  // --- Lab-based average ---
+  let sumV = 0, sumA = 0, sumD = 0, N = 0;
+  for (let r = matrix.length - n; r < matrix.length; r++) {
     const row = matrix[r];
-    for (let c = 0; c < row.length; c+=2){
+    for (let c = 0; c < row.length; c += 2) {
       const cell = row[c];
-      const {L,a,b} = rgbToLab(cell.r, cell.g, cell.b);
-      const vad = labToVAD(L,a,b);
-      const emo = labToEmotion(L,a,b);
-      sumV += vad.val; sumA += vad.aro; sumD += vad.dom; N++;
-      freq.set(emo, (freq.get(emo)||0)+1);
+      const { L, a, b } = rgbToLab(cell.r, cell.g, cell.b);
+      const vad = labToVAD(L, a, b);
+      sumV += vad.val;
+      sumA += vad.aro;
+      sumD += vad.dom;
+      N++;
     }
   }
-  const labAvg = {val: sumV/N, aro: sumA/N, dom: sumD/N};
+  const labAvg = { val: sumV / N, aro: sumA / N, dom: sumD / N };
 
-  // --- Noise VAD from dataset "sound" column + motion ---
+  // --- Noise contribution from dataset sound column ---
   const noise = noiseVADFromMatrix(n);
 
-  // --- Blend: alpha depends on noise strength & arousal contrast ---
-  const alphaBase = 0.35;                 // baseline influence of sound
-  const alpha = clamp01(alphaBase + 0.40*noise.strength); // up to ~0.75
+  // --- Blend with weight alpha ---
+  const alphaBase = 0.35;
+  const alpha = clamp01(alphaBase + 0.40 * noise.strength);
   const reg = mixVAD(labAvg, noise, alpha);
-}
-  // choose discrete emotion from the regularized VAD (optional)
-  const label = labToEmotion(reg.val*100, (reg.aro-0.5)*160, (reg.dom-0.5)*160); 
+
+  // choose discrete emotion from regularized VAD
+  const label = labToEmotion(
+    reg.val * 100,
+    (reg.aro - 0.5) * 160,
+    (reg.dom - 0.5) * 160
+  );
 
   return { label, val: reg.val, aro: reg.aro, dom: reg.dom };
 }
