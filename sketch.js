@@ -405,11 +405,6 @@ function emotionTick(){
   const alphaBase = 0.35;                 // baseline influence of sound
   const alpha = clamp01(alphaBase + 0.40*noise.strength); // up to ~0.75
   const reg = mixVAD(labAvg, noise, alpha);
-
-  // choose discrete emotion from the regularized VAD (optional)
-  const label = labToEmotion(reg.val*100, (reg.aro-0.5)*160, (reg.dom-0.5)*160); // quick proxy
-
-  return { label, val: reg.val, aro: reg.aro, dom: reg.dom };
 }
 
 
