@@ -51,12 +51,23 @@ body {
 .container { width: min(100% - 32px, var(--maxw)); margin-inline: auto; }
 
 /* Canvas card */
+#canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto;
+  max-width: 100%;
+}
 canvas {
-  border-radius: var(--radius-l);
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-m);
   border: 1px solid #4a4132;
   background: #000;
   box-shadow: var(--shadow);
 }
+
 
 /* Buttons (p5 createButton) */
 button {
@@ -130,6 +141,22 @@ input[type="range"]::-moz-range-thumb {
   word-break: break-word;
 }
 .transcript b, .listening b { color: var(--text); }
+
+#transcript-box {
+  margin: 20px auto;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow);
+  max-width: var(--maxw);
+  max-height: 280px;    /* keeps it from pushing page endlessly */
+  overflow-y: auto;     /* adds scrolling */
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  white-space: pre-wrap; /* preserve line breaks */
+}
+
 
 /* Generic p5-created bordered divs */
 div[style*="border: 1px solid"] {
