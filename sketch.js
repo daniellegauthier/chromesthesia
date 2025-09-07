@@ -42,6 +42,8 @@ const AMBIENT_FORCE_EVERY = 10;   // append same phrase every N ticks (N * rate 
 let PHRASE_TO_COLORS = new Map();
 let COLOR_KEY_TO_RGB = new Map();
 let COLOR_TO_WORDS = new Map(); 
+// RGB key -> array of sound tokens from dataset
+const COLOR_KEY_TO_SOUND = new Map();
 
 
 // ===== Ambient Story/NLG =====
@@ -53,6 +55,26 @@ const STORY_FORCE_EVERY = 6; // even if emotion stable, write every N ticks
 const EMO_SMOOTH = 5;
 let emoWindow = []; // [{val,aro,dom,label}]
 
+// ----------- SOUND TOKEN → VAD (valence [-1..1], arousal [0..1], dominance [0..1]) -----------
+const SOUND_TO_VAD = [
+  // calm/positive
+  {p:/\b(harmony|song|cheer|positive\s*cadence)\b/,            v:+0.65, a:0.40, d:0.55},
+  {p:/\b(pause|dramatic\s*pause|hold|rest)\b/,                 v:+0.10, a:0.15, d:0.40},
+  {p:/\b(pathway|plot|route|flow)\b/,                          v:+0.30, a:0.35, d:0.55},
+  // upward / energy
+  {p:/\b(up\s*tone|rise|climb|lift|uptone)\b/,                 v:+0.25, a:0.60, d:0.65},
+  // downward / settle
+  {p:/\b(down\s*tone|fall|fade|lower|downtone)\b/,             v:-0.05, a:0.25, d:0.35},
+  // rough / harsh
+  {p:/\b(rumble|growl|grit|crackle|burst|knot)\b/,             v:-0.35, a:0.75, d:0.65},
+  // neutral / structural
+  {p:/\b(scale|array|block|mesh)\b/,                           v:+0.00, a:0.35, d:0.55},
+  // negative / pull back
+  {p:/\b(lose|shrink|cry|drop)\b/,                             v:-0.45, a:0.55, d:0.40},
+];
+
+// default if no rule matched
+const SOUND_DEFAULT = {v:0.0, a:0.40, d:0.50};
 
 
 // ----------------------- CIELAB EMOTION ENGINE -----------------------
@@ -207,6 +229,13 @@ function setup(){
   window.addEventListener('pointerdown', boot, {passive:true});
 }
 
+function soundTokenToVAD(tok){
+  const t = (tok||"").toLowerCase().trim();
+  for (const rule of SOUND_TO_VAD){
+    if (rule.p.test(t)) return {v:rule.v, a:rule.a, d:rule.d};
+  }
+  return SOUND_DEFAULT;
+}
 
 // Map discrete emotion -> sentiment scores (valence [-1..1], arousal [0..1], dominance [0..1])
 const EMO_PROFILE = {
@@ -350,24 +379,39 @@ function stopStory(){
 }
 
 function emotionTick(){
-  const n = Math.min(4, matrix.length); // look at last 4 rows
-  if (n === 0) return null;
+  const n = Math.min(4, matrix.length);
+  if (n===0) return null;
 
-  const count = new Map();
+  // --- Lab-based average as before ---
   let sumV=0,sumA=0,sumD=0, N=0;
-
+  const freq = new Map();
   for (let r = matrix.length - n; r < matrix.length; r++){
     const row = matrix[r];
-    for (let c = 0; c < row.length; c++){
+    for (let c = 0; c < row.length; c+=2){
       const cell = row[c];
       const {L,a,b} = rgbToLab(cell.r, cell.g, cell.b);
-      const label = labToEmotion(L,a,b);   // you already added this
-      const vad = labToVAD(L,a,b);         // you already added this
-
-      count.set(label, (count.get(label)||0)+1);
+      const vad = labToVAD(L,a,b);
+      const emo = labToEmotion(L,a,b);
       sumV += vad.val; sumA += vad.aro; sumD += vad.dom; N++;
+      freq.set(emo, (freq.get(emo)||0)+1);
     }
   }
+  const labAvg = {val: sumV/N, aro: sumA/N, dom: sumD/N};
+
+  // --- Noise VAD from dataset "sound" column + motion ---
+  const noise = noiseVADFromMatrix(n);
+
+  // --- Blend: alpha depends on noise strength & arousal contrast ---
+  const alphaBase = 0.35;                 // baseline influence of sound
+  const alpha = clamp01(alphaBase + 0.40*noise.strength); // up to ~0.75
+  const reg = mixVAD(labAvg, noise, alpha);
+
+  // choose discrete emotion from the regularized VAD (optional)
+  const label = labToEmotion(reg.val*100, (reg.aro-0.5)*160, (reg.dom-0.5)*160); // quick proxy
+
+  return { label, val: reg.val, aro: reg.aro, dom: reg.dom };
+}
+
 
   const label = Array.from(count.entries()).sort((a,b)=>b[1]-a[1])[0][0];
   return { label, val: clamp01(sumV/N), aro: clamp01(sumA/N), dom: clamp01(sumD/N) };
@@ -413,6 +457,12 @@ function sentimentToSentence(s, ctx){
   // punctuation/pacing
   line = tidySentence(line);
   return line;
+
+  const motifs = ambientSoundsFromMatrix(2); 
+  if (motifs.length && Math.random()<0.30){
+    line += ` (${motifs.join(" · ")})`;
+  }
+  return tidySentence(line);
 }
 
 function fallbackByVAD(s){
@@ -457,6 +507,13 @@ function buildDatasetFromTable(table) {
     const r = parseInt(getCol(row, ["r","R","red"])) || 0;
     const g = parseInt(getCol(row, ["g","G","green"])) || 0;
     const b = parseInt(getCol(row, ["b","B","blue"])) || 0;
+
+const rawSound = (row.get('sound') || "").toLowerCase().trim();
+// split by comma/semicolon OR keep multi-word phrases intact if separated with slashes
+const sounds = rawSound
+  .split(/[,;]\s*/).map(s => s.trim()).filter(Boolean); // ["dramatic pause","rumble","up tone",...]
+
+COLOR_KEY_TO_SOUND.set(`${r},${g},${b}`, sounds);
 
     const sound = getCol(row, ["sound","phrase","label","term","semantic","meaning","word","descriptor"]).toLowerCase().trim();
     const colorName = getCol(row, ["Closest Color"]).trim();
@@ -509,10 +566,11 @@ function draw() {
       const idx = floor(map(freq, 0, 255, 0, max(0, colorData.length - 1)));
       const d = colorData[idx] || { r:0,g:0,b:0, digit:"", color:"", sound:"" };
       return {
-        cellColor: color(d.r, d.g, d.b),
-        digit: d.digit,
-        colorName: d.color,
-        sound: d.sound
+          cellColor: color(d.r, d.g, d.b),
+          r: d.r, g: d.g, b: d.b,           
+          digit: d.digit,
+          colorName: d.color,
+          sound: d.sound
       };
     });
     matrix.push(row);
@@ -834,6 +892,63 @@ function tidy(s) {
   // Make it pleasant as a token
   return s.toLowerCase().replace(/[_\-]+/g," ").replace(/\s+/g," ").trim();
 }
+
+function noiseVADFromMatrix(nRows=4){
+  const n = Math.min(nRows, matrix.length);
+  if (n===0) return {v:0.0, a:0.0, d:0.0, strength:0};
+
+  let Sv=0, Sa=0, Sd=0, N=0, motionSum=0, motionN=0;
+
+  const start = matrix.length - n;
+  for (let r = start; r < matrix.length; r++){
+    const row = matrix[r];
+    for (let c = 0; c < row.length; c+=2){ // stride for speed
+      const cell = row[c];
+      const key = `${cell.r},${cell.g},${cell.b}`;
+      const tokens = COLOR_KEY_TO_SOUND.get(key);
+      if (tokens && tokens.length){
+        // take up to 2 tokens per color to avoid overbias
+        const take = Math.min(tokens.length, 2);
+        for (let i=0;i<take;i++){
+          const tok = tokens[(i===0) ? Math.floor(Math.random()*tokens.length) : (i%tokens.length)];
+          const s = soundTokenToVAD(tok);
+          Sv += s.v; Sa += s.a; Sd += s.d; N++;
+        }
+      }
+      // temporal "burstiness"
+      if (r>start){
+        const prev = matrix[r-1][c];
+        if (prev){
+          motionSum += Math.abs(cell.r-prev.r)+Math.abs(cell.g-prev.g)+Math.abs(cell.b-prev.b);
+          motionN++;
+        }
+      }
+    }
+  }
+  if (N===0) return {v:0.0, a:0.0, d:0.0, strength:0};
+
+  let v = Sv/N, a = Sa/N, d = Sd/N;
+
+  // normalize motion 0..765 -> 0..1 and add gentle arousal boost
+  const motion = motionN? Math.min(1, motionSum/(motionN*300)) : 0; // 300 is a soft scale
+  a = Math.min(1, a + 0.25*motion);
+
+  // strength of the noise signal = how many sound hits we saw (0..1)
+  const strength = Math.min(1, N / (n * matrixWidth / 2)); // /2 due to stride
+
+  return {v, a, d, strength};
+}
+function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+// mix two VADs with weight alpha, then clamp
+function mixVAD(lab, noise, alpha){
+  const v = clamp01((1-alpha)*lab.val + alpha*(noise.v*0.5 + 0.5)); // map [-1..1] -> [0..1]
+  const a = clamp01((1-alpha)*lab.aro + alpha*noise.a);
+  const d = clamp01((1-alpha)*lab.dom + alpha*noise.d);
+  return {val:v, aro:a, dom:d};
+}
+
+
 
 // ------------------------- UI helpers -------------------------
 function micErr(e){ console.error(e); msg("❗ Mic permission failed."); }
