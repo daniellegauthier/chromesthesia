@@ -157,6 +157,10 @@ input[type="range"]::-moz-range-thumb {
   white-space: pre-wrap; /* preserve line breaks */
 }
 
+#transcript .live {
+  color: var(--muted);
+  font-style: italic;
+}
 
 /* Generic p5-created bordered divs */
 div[style*="border: 1px solid"] {
