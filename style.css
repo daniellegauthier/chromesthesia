@@ -1,7 +1,148 @@
-html, body {
-  margin: 0;
-  padding: 0;
+/* =========================================================
+   lamatriz.ai — Earth Palette v2 (p5-safe)
+   ========================================================= */
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html, body { height: 100%; }
+body { line-height: 1.5; -webkit-font-smoothing: antialiased; }
+img, canvas, svg { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+/* Tokens */
+:root {
+  --bg: #F2EBDC;        /* paper/cream */
+  --surface: #A69D85;   /* warm taupe */
+  --card: #F2EBDC;      /* card surface */
+  --text: #262014;      /* near-black brown */
+  --muted: #594E39;     /* dark brown */
+  --border: #594E39;    /* structure line */
+  --shadow: 0 10px 30px rgba(0,0,0,.18);
+
+  --accent: #7A8C51;    /* olive */
+  --accent-2: #D9BA5F;  /* gold */
+  --accent-alt: #BF6849;/* rust */
+  --accent-soft: #D99E89;/* peach */
+
+  --focus: #D9BA5F;
+
+  --maxw: 1120px;
+  --radius-s: 10px;
+  --radius-m: 14px;
+  --radius-l: 18px;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  --fs-base: 16px;
+  --fs-sm: 0.925rem;
+  --fs-xs: 0.85rem;
 }
+
+/* Base */
+body {
+  background: linear-gradient(180deg, var(--bg), var(--surface) 60%);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  padding: 14px;
+}
+.container { width: min(100% - 32px, var(--maxw)); margin-inline: auto; }
+
+/* Canvas card */
 canvas {
-  display: block;
+  border-radius: var(--radius-l);
+  border: 1px solid #4a4132;
+  background: #000;
+  box-shadow: var(--shadow);
 }
+
+/* Buttons (p5 createButton) */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #efe7d7; /* softened card */
+  color: var(--text);
+  transition: transform .08s ease, background-color .2s ease, border-color .2s ease;
+  margin: 6px 8px 6px 0;
+}
+button:hover {
+  background: #e3d8bf;
+  border-color: #7A8C51;
+}
+button:active { transform: translateY(1px); }
+button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* Inputs / Sliders */
+input[type="text"], input[type="url"], input[type="file"] {
+  background: #e3dccf;
+  color: var(--text);
+  border: 1px solid #6b5f48;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+input::file-selector-button {
+  margin-right: 10px; border: 1px solid #6b5f48;
+  padding: 8px 10px; border-radius: 10px; background: #f3ede1;
+}
+input::placeholder { color: #7b6f5a; }
+
+/* Slider track & thumb */
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 220px; height: 6px; border-radius: 999px;
+  background: #c9c1b3; border: 1px solid #594E39;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); border: 1px solid #594E39;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); border: 1px solid #594E39;
+}
+
+/* Panels: transcript / listening / status */
+.panel {
+  background: #e6ded0;
+  border: 1px solid #4a4132;
+  border-radius: var(--radius-m);
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+}
+.transcript, .listening, .status {
+  background: #e6ded0;
+  border: 1px solid #4a4132;
+  border-radius: 12px;
+  padding: 10px 12px;
+  max-width: 560px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.transcript b, .listening b { color: var(--text); }
+
+/* Generic p5-created bordered divs */
+div[style*="border: 1px solid"] {
+  border-color: #4a4132 !important;
+  background: #e6ded0 !important;
+  border-radius: 12px !important;
+}
+
+/* Badges */
+.led { display: inline-flex; align-items: center; gap: 8px; }
+.led .dot { width: 10px; height: 10px; border-radius: 50%; background: #c33; }
+.led .dot.on { background: #4caf50; }
+
+/* Utility */
+hr { border: 0; height: 1px; background: #594E39; margin: 12px 0; }
+.hidden { display: none !important; }
