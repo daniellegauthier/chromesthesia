@@ -406,10 +406,10 @@ function emotionTick(){
   const alpha = clamp01(alphaBase + 0.40*noise.strength); // up to ~0.75
   const reg = mixVAD(labAvg, noise, alpha);
 }
+  // choose discrete emotion from the regularized VAD (optional)
+  const label = labToEmotion(reg.val*100, (reg.aro-0.5)*160, (reg.dom-0.5)*160); 
 
-
-  const label = Array.from(count.entries()).sort((a,b)=>b[1]-a[1])[0][0];
-  return { label, val: clamp01(sumV/N), aro: clamp01(sumA/N), dom: clamp01(sumD/N) };
+  return { label, val: reg.val, aro: reg.aro, dom: reg.dom };
 }
 
 function averageEmo(arr){
