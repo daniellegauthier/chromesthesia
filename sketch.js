@@ -572,26 +572,12 @@ function createUI() {
                 .parent(c).style("margin","6px 0");
 
   // WRAPPED transcript box
-  finalDiv  = createDiv("<b>Transcript:</b> <i>(final will appear here)</i>")
-                .parent(c)
-                .style("padding","10px")
-                .style("background","#fff")
-                .style("border","1px solid #ddd")
-                .style("border-radius","6px")
-                .style("margin-bottom","8px")
-                .style("max-width", (matrixWidth*cellSize) + "px")
-                .style("white-space","pre-wrap")
-                .style("overflow-wrap","anywhere")
-                .style("word-break","break-word")
-                .style("line-height","1.35");
-
-  liveDiv   = createDiv("<b>Listening:</b> <i>(live words…)</i>")
-                .parent(c).style("padding","10px")
-                .style("background","#fafafa")
-                .style("border","1px dashed #ddd")
-                .style("border-radius","6px")
-                .style("max-width", (matrixWidth*cellSize) + "px");
+function appendFinal(text) {
+  let transcriptDiv = select('#transcript');
+  transcriptDiv.html(transcriptDiv.html() + text + "<br/>");
 }
+
+  appendFinal("<span class='live'>" + phrase + "</span>");
 
 function btn(label, handler, parent) {
   const b = createButton(label).parent(parent);
