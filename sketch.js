@@ -938,7 +938,6 @@ function noiseVADFromMatrix(nRows=4){
 
   return {v, a, d, strength};
 }
-function clamp01(x){ return Math.max(0, Math.min(1, x)); }
 
 // mix two VADs with weight alpha, then clamp
 function mixVAD(lab, noise, alpha){
